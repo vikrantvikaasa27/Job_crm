@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountRole {
+    ADMIN
+    JOBSEEKER
+    COMPANY
+}
+
+model Account {
+    id              String @id @default(uuid())
+    username        String
+    email           String @unique
+    password        String
+    role            AccountRole
+    jobseeker       Jobseeker?
+    company         Company?
+}
+
+model Company {
+    id              String @id @default(uuid())
+    name            String
+    logo            String?
+    overview        String?
+    industry        String?
+    website         String?
+    location        String?
+    employee        String?
+    dateFounded     DateTime?
+    isCompleted     Boolean @default(false)
+    accountId       String @unique
+    account         Account @relation(fields: [accountId], references: [id])
+    socialMedia     SocialMedia[]
+    jobs            Job[]
+}
+
+model Jobseeker {
+    id              String @id @default(uuid())
+    fullName        String
+    photo           String?
+    phoneNumber     String? @db.VarChar(15)
+    address         String?
+    summary         String?
+    accountId       String @unique
+    account         Account @relation(fields: [accountId], references: [id])
+    educations      Education[]
+    experiences     Experience[]
+    organizations   Organization[]
+    socialMedia     SocialMedia[]
+    applicants      Applicant[]
+}
+model Industry {
+    id              String @id @default(uuid())
+    name            String
+}
+
+model JobCategory {
+    id              String @id @default(uuid())
+    name            String
+    jobs            Job[]
+}
+
+model Job {
+    id              String @id @default(uuid())
+    role            String
+    description     String
+    datePosted      DateTime @default(now())
+    dueDate         DateTime
+    jobType         String
+    totalApplicants Int @default(0)
+    totalNeeds      Int @default(0)
+    salaryFrom      String
+    salaryTo        String
+    requiredSkills  String[]
+    benefits        Json
+    companyId       String
+    company         Company? @relation(fields: [companyId], references: [id])
+    categoryId      String
+    category        JobCategory? @relation(fields: [categoryId], references: [id])
+    applicants      Applicant[]
+}
+
+enum Status {
+    APPLIED
+    INTERVIEW
+    PSIKOTEST
+    OFFERING
+    REJECT
+}
+
+model Applicant {
+    id              String @id @default(uuid())
+    resume          String
+    coverLetter     String?
+    status          Status? @default(APPLIED)
+    applyDate       DateTime @default(now())
+    jobseekerId     String
+    jobseeker       Jobseeker @relation(fields: [jobseekerId], references: [id])
+    jobId           String
+    job             Job @relation(fields: [jobId], references: [id])
+}
+
+model Education {
+    id              String @id @default(uuid())
+    name            String?
+    startDate       DateTime?
+    endDate         DateTime?
+    description     String?
+    major           String?
+    grade           String?
+    jobseekerId     String?
+    jobseeker       Jobseeker? @relation(fields: [jobseekerId], references: [id])
+}
+
+model Experience {
+    id              String @id @default(uuid())
+    companyName     String?
+    role            String?
+    jobType         String?
+    startDate       DateTime?
+    endDate         DateTime?
+    description     String?
+    jobseekerId     String?
+    jobseeker       Jobseeker? @relation(fields: [jobseekerId], references: [id])
+}
+
+model Organization {
+    id              String @id @default(uuid())
+    name            String?
+    role            String?
+    startDate       DateTime?
+    endDate         DateTime?
+    description     String?
+    jobseekerId     String?
+    jobseeker       Jobseeker? @relation(fields: [jobseekerId], references: [id])
+}
+
+model SocialMedia {
+    id              String @id @default(uuid())
+    name            String?
+    link            String?
+    jobseekerId     String?
+    jobseeker       Jobseeker? @relation(fields: [jobseekerId], references: [id])
+    companyId       String?
+    company         Company? @relation(fields: [companyId], references: [id])
+}
